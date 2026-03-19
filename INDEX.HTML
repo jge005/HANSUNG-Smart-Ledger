@@ -1,0 +1,1051 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  LockKeyhole,
+  UserRound,
+  ArrowRight,
+  ShoppingCart,
+  TrendingUp,
+  FileSpreadsheet,
+  Settings2,
+  ArrowLeft,
+  Search,
+} from "lucide-react";
+
+const shellBg = "min-h-screen bg-[linear-gradient(180deg,#fff9ef_0%,#f8f1ff_48%,#eef6ff_100%)] text-[#4e4564]";
+const panel = "overflow-hidden rounded-[30px] border border-white/70 bg-white/80 shadow-[0_20px_60px_rgba(131,103,181,0.15)] backdrop-blur";
+const field = "h-11 w-full rounded-2xl border border-[#eadff6] bg-white/92 pl-10 pr-4 text-[13px] outline-none transition focus:border-[#c3a7ff] focus:ring-4 focus:ring-[#f1e8ff]";
+const inputBase = "h-10 w-full border border-[#e6dcf3] bg-white px-3 text-[13px] outline-none transition focus:border-[#c3a7ff] focus:ring-2 focus:ring-[#f1e8ff]";
+const selectBase = "h-10 w-full border border-[#e6dcf3] bg-white px-3 text-[13px] outline-none transition focus:border-[#c3a7ff] focus:ring-2 focus:ring-[#f1e8ff]";
+const primaryButton = "inline-flex items-center justify-center rounded-2xl border border-[#b99cff] bg-[linear-gradient(135deg,#d8b7ff_0%,#9fd2ff_100%)] px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_10px_24px_rgba(156,126,219,0.24)] transition hover:brightness-[1.03]";
+const softButton = "inline-flex items-center justify-center rounded-2xl border border-white/90 bg-white/88 px-4 py-2 text-[13px] font-medium text-[#5f5677] shadow-[0_8px_20px_rgba(131,103,181,0.08)] transition hover:bg-white";
+
+const clients = [
+  "대영전자",
+  "대영일렉트릭",
+  "대영VINA법인",
+  "에스제이인터내셔널",
+  "디지티",
+  "동아전기부품주식회사 공주공장",
+  "무등스크린 주식회사",
+  "삼광반도체 ㈜",
+  "세현전자㈜",
+  "아이테크코리아㈜",
+  "알.비. 코리아㈜",
+  "에스제이아이티 주식회사",
+  "제이에스테크",
+  "㈜ 첨단정밀",
+  "㈜성진전자기술",
+  "주식회사 대성 포레스",
+  "주식회사 대정",
+  "주식회사 디지티",
+  "주식회사 승명이엔지",
+  "주식회사 씨앤드피코리아",
+];
+
+const items = [
+  { code: "DA64-06908C", name: "FILM RR7000 냉동 우힌지 DA64-06908C", price: 1344000 },
+  { code: "DA64-06908E", name: "FILM RR7000 냉장 우힌지 UV無 DA64-06908E", price: 1344000 },
+  { code: "DA64-06908D", name: "FILM RR7000 김치 우힌지 DA64-06908D", price: 1344000 },
+  { code: "DA64-06104C-1", name: "FILM RR7000 김치 1번 DA64-06104C-1", price: 111000 },
+  { code: "DA64-06104C-2", name: "FILM RR7000 김치 2번 DA64-06104C-2", price: 115000 },
+  { code: "DA64-06908F", name: "FILM RR7000 김치 우힌지 UV無 DA64-06908F", price: 1344000 },
+  { code: "DA64-06907D", name: "FILM RR7000 김치 좌힌지 DA64-06907D", price: 1344000 },
+  { code: "DA64-06907F", name: "FILM RR7000 김치 좌힌지 UV無 DA64-06907F", price: 1344000 },
+  { code: "DA64-07011A", name: "FILM RQ7000A INLAY CONTROL DA64-07011A", price: 1240000 },
+  { code: "GD0601-5023A", name: "DOUBLE FACE TAPE, no.1100J, 150-90,T0.16, 손잡이 적용,세탁기 GD0601-5023A", price: 182000 },
+  { code: "DA97-22254D", name: "FILM RF9000D (DA64-06491C) DA97-22254D", price: 750000 },
+  { code: "DC01-00700A", name: "FILM DF5000BM DC01-00700A", price: 33000 },
+  { code: "DC64-04403A", name: "FILM PET,유백색, 투과율40%, (SIZE 99*110), 손잡이 DC64-04403A", price: 540000 },
+  { code: "GD0601-5464A", name: "FILM RWP70F 접수기 GD0601-5464A", price: 221000 },
+  { code: "DC01-00701A", name: "MOLD 88LED DF5000BM AD3050-GOOD DC01-00701A", price: 146000 },
+  { code: "DC64-04195A", name: "MOLD INLAY 국문 DF5000BM AD3050-GOOD DC64-04195A", price: 723000 },
+  { code: "DC64-04195B", name: "MOLD INLAY led-TYPE 영문 AD3050-GOOD DC64-04195B", price: 723000 },
+  { code: "DA64-05837A-1", name: "FILM RF-8000M DISP(DA64-05837A-1)", price: 147000 },
+  { code: "GD0601-2847A", name: "FILM WR9900R SIMPLE-PJT 88세그(아이콘) GD0601-2847A", price: 349000 },
+  { code: "HL-LED1522SB-A101", name: "HL-LED1522SB-A101", price: 129 },
+  { code: "FILM A-PJT JOG", name: "FILM A-PJT JOG", price: 270 },
+];
+
+type Page = "menu" | "sales";
+type CellKey = "name" | "qty" | "unitPrice" | "amount";
+type SelectionCell = { rowId: number; key: CellKey };
+type EditCell = { rowId: number; key: "date" | "qty" | "unitPrice" } | null;
+type SalesRow = {
+  id: number;
+  date: string;
+  company: string;
+  code: string;
+  name: string;
+  remark: string;
+  qty: number;
+  unitPrice: number;
+};
+
+const initialRows: SalesRow[] = [
+  { id: 1, date: "3월 20일", company: "대영전자", code: "DA64-06908C", name: "FILM RR7000 냉동 우힌지 DA64-06908C", remark: "", qty: 100, unitPrice: 1344000 },
+  { id: 2, date: "3월 20일", company: "대영전자", code: "DA64-06908E", name: "FILM RR7000 냉장 우힌지 UV無 DA64-06908E", remark: "", qty: 250, unitPrice: 1344000 },
+  { id: 3, date: "3월 20일", company: "대영전자", code: "DA64-06908D", name: "FILM RR7000 김치 우힌지 DA64-06908D", remark: "", qty: 200, unitPrice: 1344000 },
+  { id: 4, date: "3월 20일", company: "대영전자", code: "DA64-06104C-1", name: "FILM RR7000 김치 1번 DA64-06104C-1", remark: "", qty: 100, unitPrice: 111000 },
+  { id: 5, date: "3월 20일", company: "대영전자", code: "DA64-06104C-2", name: "FILM RR7000 김치 2번 DA64-06104C-2", remark: "", qty: 100, unitPrice: 115000 },
+];
+
+const menuCards = [
+  { key: "purchase", title: "매입", desc: "거래처, 코드, 수량 기준으로 매입 내역 입력", icon: ShoppingCart },
+  { key: "sales", title: "매출", desc: "월일 / 업체명 / 코드 / 품명 / 수량 / 단가 / 매출금액 입력", icon: TrendingUp },
+  { key: "sales-manage", title: "매출관리", desc: "시작월·종료월·업체 조건으로 조회하고 수정하는 화면", icon: FileSpreadsheet },
+  { key: "settings", title: "설정", desc: "업체 추가, 품목 추가, 단가 수정 등 기준정보 관리", icon: Settings2 },
+] as const;
+
+function formatNumber(value: number) {
+  return new Intl.NumberFormat("ko-KR").format(value);
+}
+
+function digitsOnly(value: string) {
+  return value.split("").filter((char) => char >= "0" && char <= "9").join("");
+}
+
+function parseDateInput(value: string) {
+  const trimmed = value.split(" ").join("");
+  const parts = trimmed.split("/");
+  if (parts.length !== 2) return { raw: value, label: value };
+  const month = Number(parts[0]);
+  const day = Number(parts[1]);
+  if (!month || !day) return { raw: value, label: value };
+  return { raw: month + "/" + day, label: month + "월 " + day + "일" };
+}
+
+function getCellValue(row: SalesRow, key: CellKey) {
+  if (key === "qty") return row.qty;
+  if (key === "unitPrice") return row.unitPrice;
+  if (key === "amount") return row.qty * row.unitPrice;
+  return row.name;
+}
+
+export default function GaeunLedgerLoginFirstPage() {
+  const [userId, setUserId] = useState("");
+  const [password, setPassword] = useState("");
+  const [entered, setEntered] = useState(false);
+  const [page, setPage] = useState<Page>("menu");
+
+  const [salesDateRaw, setSalesDateRaw] = useState("3/20");
+  const [salesDateLabel, setSalesDateLabel] = useState("3월 20일");
+  const [salesCompany, setSalesCompany] = useState(clients[0]);
+  const [salesCode, setSalesCode] = useState("");
+  const [salesName, setSalesName] = useState("");
+  const [salesRemark, setSalesRemark] = useState("");
+  const [salesQty, setSalesQty] = useState("");
+  const [salesUnitPrice, setSalesUnitPrice] = useState("");
+  const [rows, setRows] = useState<SalesRow[]>(initialRows);
+  const [codeFocused, setCodeFocused] = useState(false);
+  const [selectedCells, setSelectedCells] = useState<SelectionCell[]>([]);
+  const [isDraggingCells, setIsDraggingCells] = useState(false);
+  const [editingCell, setEditingCell] = useState<EditCell>(null);
+
+  const companyInputRef = useRef<HTMLSelectElement | null>(null);
+  const codeInputRef = useRef<HTMLInputElement | null>(null);
+  const qtyInputRef = useRef<HTMLInputElement | null>(null);
+  const unitPriceInputRef = useRef<HTMLInputElement | null>(null);
+  const dragAnchorRef = useRef<SelectionCell | null>(null);
+  const tableScrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleMouseUp = () => setIsDraggingCells(false);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => window.removeEventListener("mouseup", handleMouseUp);
+  }, []);
+
+  useEffect(() => {
+    if (page === "sales" && tableScrollRef.current) {
+      tableScrollRef.current.scrollTop = tableScrollRef.current.scrollHeight;
+    }
+  }, [page, rows]);
+
+  const matchedItems = useMemo(() => {
+    if (!salesCode.trim()) return items.slice(0, 10);
+    const keyword = salesCode.toLowerCase();
+    return items.filter((item) => item.code.toLowerCase().includes(keyword) || item.name.toLowerCase().includes(keyword)).slice(0, 12);
+  }, [salesCode]);
+
+  const currentAmount = (Number(digitsOnly(salesQty)) || 0) * (Number(digitsOnly(salesUnitPrice)) || 0);
+  const monthlyTotal = useMemo(() => rows.reduce((sum, row) => sum + row.qty * row.unitPrice, 0), [rows]);
+
+  const selectedSummary = useMemo(() => {
+    if (selectedCells.length === 0) return null;
+    const numericValues: number[] = [];
+    selectedCells.forEach((cell) => {
+      const row = rows.find((item) => item.id === cell.rowId);
+      if (!row) return;
+      const value = getCellValue(row, cell.key);
+      if (typeof value === "number") numericValues.push(value);
+    });
+    return {
+      count: selectedCells.length,
+      numericCount: numericValues.length,
+      numericSum: numericValues.reduce((sum, value) => sum + value, 0),
+    };
+  }, [rows, selectedCells]);
+
+  const handleEnter = () => setEntered(true);
+  const handleLoginKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleEnter();
+    }
+  };
+
+  const moveToNextInput = (fieldName: "date" | "company" | "code" | "qty") => {
+    if (fieldName === "date") companyInputRef.current?.focus();
+    if (fieldName === "company") codeInputRef.current?.focus();
+    if (fieldName === "code") qtyInputRef.current?.focus();
+    if (fieldName === "qty") unitPriceInputRef.current?.focus();
+  };
+
+  const selectItem = (code: string) => {
+    const found = items.find((item) => item.code === code);
+    if (!found) return;
+    setSalesCode(found.code);
+    setSalesName(found.name);
+    setSalesUnitPrice(String(found.price));
+    setCodeFocused(false);
+    window.setTimeout(() => qtyInputRef.current?.focus(), 0);
+  };
+
+  const handleCodeChange = (value: string) => {
+    setSalesCode(value);
+    setCodeFocused(true);
+    const exact = items.find((item) => item.code.toLowerCase() === value.toLowerCase());
+    if (exact) {
+      setSalesName(exact.name);
+      setSalesUnitPrice(String(exact.price));
+    } else {
+      setSalesName("");
+      setSalesUnitPrice("");
+    }
+  };
+
+  const resetSalesEntry = () => {
+    setSalesCode("");
+    setSalesName("");
+    setSalesRemark("");
+    setSalesQty("");
+    setSalesUnitPrice("");
+    setCodeFocused(false);
+    window.setTimeout(() => codeInputRef.current?.focus(), 0);
+  };
+
+  const handleAddSalesRow = () => {
+    const qty = Number(digitsOnly(salesQty));
+    const unitPrice = Number(digitsOnly(salesUnitPrice));
+    if (!salesDateLabel || !salesCompany || !salesCode || !salesName || !qty || !unitPrice) return;
+    const nextRow: SalesRow = {
+      id: Date.now(),
+      date: salesDateLabel,
+      company: salesCompany,
+      code: salesCode,
+      name: salesName,
+      remark: salesRemark,
+      qty,
+      unitPrice,
+    };
+    setRows((prev) => [...prev, nextRow]);
+    resetSalesEntry();
+  };
+
+  const deleteRow = (id: number) => {
+    setRows((prev) => prev.filter((row) => row.id !== id));
+    setSelectedCells((prev) => prev.filter((cell) => cell.rowId !== id));
+    if (editingCell?.rowId === id) setEditingCell(null);
+  };
+
+  const updateEditableCell = (rowId: number, key: "date" | "qty" | "unitPrice", value: string) => {
+    setRows((prev) =>
+      prev.map((row) => {
+        if (row.id !== rowId) return row;
+        if (key === "date") return { ...row, date: parseDateInput(value).label };
+        const parsed = Number(digitsOnly(value)) || 0;
+        return { ...row, [key]: parsed };
+      })
+    );
+    setEditingCell(null);
+  };
+
+  const handleCellMouseDown = (e: React.MouseEvent, cell: SelectionCell) => {
+    e.stopPropagation();
+    dragAnchorRef.current = cell;
+    setIsDraggingCells(true);
+    setSelectedCells([cell]);
+  };
+
+  const handleCellMouseEnter = (cell: SelectionCell) => {
+    if (!isDraggingCells || !dragAnchorRef.current) return;
+    const anchor = dragAnchorRef.current;
+    const rowIds = rows.map((row) => row.id);
+    const keys: CellKey[] = ["name", "qty", "unitPrice", "amount"];
+    const startIndex = rowIds.indexOf(anchor.rowId);
+    const endIndex = rowIds.indexOf(cell.rowId);
+    const startKeyIndex = keys.indexOf(anchor.key);
+    const endKeyIndex = keys.indexOf(cell.key);
+    if (startIndex === -1 || endIndex === -1 || startKeyIndex === -1 || endKeyIndex === -1) return;
+    const rowMin = startIndex < endIndex ? startIndex : endIndex;
+    const rowMax = startIndex < endIndex ? endIndex : startIndex;
+    const keyMin = startKeyIndex < endKeyIndex ? startKeyIndex : endKeyIndex;
+    const keyMax = startKeyIndex < endKeyIndex ? endKeyIndex : startKeyIndex;
+    const nextSelection: SelectionCell[] = [];
+    rowIds.slice(rowMin, rowMax + 1).forEach((rowId) => {
+      keys.slice(keyMin, keyMax + 1).forEach((key) => nextSelection.push({ rowId, key }));
+    });
+    setSelectedCells(nextSelection);
+  };
+
+  const isSelectedCell = (rowId: number, key: CellKey) => selectedCells.some((cell) => cell.rowId === rowId && cell.key === key);
+
+  if (!entered) {
+    return (
+      <div className={shellBg}>
+        <div className="mx-auto flex min-h-screen max-w-5xl items-center justify-center px-4 py-10">
+          <div className={panel + " w-full max-w-5xl"}>
+            <div className="grid grid-cols-[1.1fr_0.9fr] gap-0">
+              <div className="border-r border-[#eee3fb] bg-[linear-gradient(180deg,rgba(255,247,233,0.96)_0%,rgba(248,240,255,0.95)_100%)] px-10 py-10">
+                <div className="mb-8 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/90 bg-white shadow-[0_8px_24px_rgba(131,103,181,0.10)]">
+                  <LockKeyhole className="h-5 w-5 text-[#9e7cf6]" />
+                </div>
+                <h1 className="text-[30px] font-semibold tracking-[-0.04em] text-[#4b3f66]">가은표 스마트 매출·매입 장부</h1>
+                <p className="mt-4 max-w-[500px] text-[14px] leading-7 text-[#82779a]">지금은 로그인 버튼 없이 아이디나 비밀번호 입력 후 엔터만 누르면 바로 들어가게 해둔 상태야.</p>
+              </div>
+              <div className="bg-white/50 px-10 py-10">
+                <div className="border-b border-[#f0e7fb] pb-4">
+                  <div className="text-[22px] font-semibold tracking-[-0.02em] text-[#4b3f66]">로그인 / 첫 화면</div>
+                  <div className="mt-1 text-[12px] text-[#8d81a6]">엔터로 바로 진입</div>
+                </div>
+                <div className="mt-6 space-y-4 text-[13px]">
+                  <div>
+                    <label className="mb-1.5 block font-medium text-[#6f6488]">아이디</label>
+                    <div className="relative">
+                      <UserRound className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-[#9b90b1]" />
+                      <input value={userId} onChange={(e) => setUserId(e.target.value)} onKeyDown={handleLoginKeyDown} placeholder="아이디 입력" className={field} autoFocus />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block font-medium text-[#6f6488]">비밀번호</label>
+                    <div className="relative">
+                      <LockKeyhole className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-[#9b90b1]" />
+                      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={handleLoginKeyDown} placeholder="비밀번호 입력" className={field} />
+                    </div>
+                  </div>
+                  <button onClick={handleEnter} className={primaryButton + " h-11 w-full gap-2"}>
+                    테스트 진입 <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (page === "menu") {
+    return (
+      <div className={shellBg}>
+        <div className="mx-auto flex min-h-screen max-w-6xl items-center justify-center px-4 py-10">
+          <div className="w-full overflow-hidden rounded-[32px] border border-white/70 bg-white/82 shadow-[0_20px_60px_rgba(131,103,181,0.15)] backdrop-blur">
+            <div className="border-b border-[#efe6fb] bg-[linear-gradient(90deg,rgba(255,247,232,0.92)_0%,rgba(247,241,255,0.94)_54%,rgba(238,246,255,0.94)_100%)] px-8 py-6">
+              <div className="text-[24px] font-semibold tracking-[-0.03em] text-[#4b3f66]">가은표 스마트 매출·매입 장부</div>
+              <div className="mt-1 text-[13px] text-[#897ea0]">첫 화면에서는 가장 많이 쓰는 메뉴 4개만 바로 보이게 정리했어.</div>
+            </div>
+            <div className="grid grid-cols-[1.05fr_0.95fr] gap-0">
+              <div className="border-r border-[#efe6fb] bg-[linear-gradient(180deg,rgba(255,248,235,0.84)_0%,rgba(248,240,255,0.68)_100%)] px-8 py-8">
+                <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/90 bg-white shadow-[0_8px_24px_rgba(131,103,181,0.10)]">
+                  <LockKeyhole className="h-5 w-5 text-[#9e7cf6]" />
+                </div>
+                <div className="text-[28px] font-semibold tracking-[-0.03em] text-[#4b3f66]">들어오자마자 바로 고르는 장부 메인 메뉴</div>
+              </div>
+              <div className="px-8 py-8">
+                <div className="grid grid-cols-2 gap-4">
+                  {menuCards.map((card) => {
+                    const Icon = card.icon;
+                    return (
+                      <button key={card.key} onClick={() => card.key === "sales" && setPage("sales")} className="group rounded-[24px] border border-white/90 bg-white/88 p-5 text-left shadow-[0_10px_28px_rgba(131,103,181,0.10)] transition hover:-translate-y-0.5 hover:bg-white">
+                        <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#f8f0ff_0%,#eef7ff_100%)] text-[#8b72d9]">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div className="text-[19px] font-semibold tracking-[-0.02em] text-[#4b3f66]">{card.title}</div>
+                        <div className="mt-2 text-[12px] leading-6 text-[#8d81a6]">{card.desc}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={shellBg} onMouseDown={() => setSelectedCells([])}>
+      <div className="mx-auto max-w-[1460px] px-4 py-6">
+        <div className={panel}>
+          <div className="flex items-center justify-between border-b border-[#efe6fb] bg-[linear-gradient(90deg,rgba(255,247,232,0.92)_0%,rgba(247,241,255,0.94)_54%,rgba(238,246,255,0.94)_100%)] px-6 py-5">
+            <button className={softButton} onClick={() => setPage("menu")}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> 돌아가기
+            </button>
+            <div className="text-[20px] font-semibold tracking-[-0.03em] text-[#4b3f66]">매출 입력</div>
+            <div className="text-[12px] text-[#897ea0]">업체명은 선택, 코드는 자동완성</div>
+          </div>
+
+          <div ref={tableScrollRef} className="max-h-[68vh] overflow-auto px-6 py-5" onMouseDown={() => setSelectedCells([])}>
+            <table className="w-full min-w-[1360px] border-collapse text-[13px] text-[#514867]">
+              <thead>
+                <tr className="bg-white text-[#756b8d]">
+                  {["월일", "업체명", "코드", "품명", "비고", "수량", "단가", "매출금액", "관리"].map((head) => (
+                    <th key={head} className="sticky top-0 z-10 border border-[#e8def4] bg-white px-3 py-3 text-center font-semibold">{head}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="sticky top-[44px] z-10 bg-white shadow-sm">
+                  <td className="border border-[#ece4f6] p-2">
+                    <input
+                      className={inputBase}
+                      value={salesDateRaw}
+                      onChange={(e) => setSalesDateRaw(e.target.value)}
+                      onBlur={() => {
+                        const parsed = parseDateInput(salesDateRaw);
+                        setSalesDateRaw(parsed.raw);
+                        setSalesDateLabel(parsed.label);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const parsed = parseDateInput(salesDateRaw);
+                          setSalesDateRaw(parsed.raw);
+                          setSalesDateLabel(parsed.label);
+                          moveToNextInput("date");
+                        }
+                      }}
+                    />
+                  </td>
+                  <td className="border border-[#ece4f6] p-2">
+                    <select ref={companyInputRef} value={salesCompany} onChange={(e) => setSalesCompany(e.target.value)} onKeyDown={(e) => {
+                      if (e.key === "Enter") { e.preventDefault(); moveToNextInput("company"); }
+                    }} className={selectBase}>
+                      {clients.map((client) => <option key={client} value={client}>{client}</option>)}
+                    </select>
+                  </td>
+                  <td className="border border-[#ece4f6] p-2">
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-[#9b90b1]" />
+                      <input
+                        ref={codeInputRef}
+                        value={salesCode}
+                        onChange={(e) => handleCodeChange(e.target.value)}
+                        onFocus={() => setCodeFocused(true)}
+                        onBlur={() => window.setTimeout(() => setCodeFocused(false), 120)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const exact = items.find((item) => item.code.toLowerCase() === salesCode.toLowerCase());
+                            if (exact) selectItem(exact.code); else moveToNextInput("code");
+                          }
+                          if (e.key === "ArrowDown") {
+                            e.preventDefault();
+                            const first = matchedItems[0];
+                            if (first) selectItem(first.code);
+                          }
+                        }}
+                        className={inputBase + " pl-10"}
+                        placeholder="코드 입력"
+                      />
+                      {codeFocused && matchedItems.length > 0 && (
+                        <div className="absolute left-0 top-[44px] z-20 max-h-64 w-[460px] overflow-auto rounded-[18px] border border-white/90 bg-white/96 shadow-[0_18px_40px_rgba(122,92,168,0.18)] backdrop-blur">
+                          {matchedItems.map((item) => (
+                            <button key={item.code} onMouseDown={() => selectItem(item.code)} className="block w-full border-b border-[#f2ebfb] px-4 py-3 text-left transition hover:bg-[#fcf8ff]">
+                              <div className="font-semibold text-[#4b3f66]">{item.code}</div>
+                              <div className="mt-1 text-[12px] text-[#7f7498]">{item.name}</div>
+                              <div className="mt-1 text-[11px] text-[#9b90b1]">단가 {formatNumber(item.price)}</div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td className="border border-[#ece4f6] p-2">
+                    <input value={salesName} readOnly className={inputBase + " bg-[#faf7ff]"} placeholder="코드 선택 시 자동 표시" />
+                  </td>
+                  <td className="border border-[#ece4f6] p-2">
+                    <input value={salesRemark} onChange={(e) => setSalesRemark(e.target.value)} className={inputBase} placeholder="비고" />
+                  </td>
+                  <td className="border border-[#ece4f6] p-2">
+                    <input ref={qtyInputRef} value={salesQty} onChange={(e) => setSalesQty(digitsOnly(e.target.value))} onKeyDown={(e) => {
+                      if (e.key === "Enter") { e.preventDefault(); moveToNextInput("qty"); }
+                    }} className={inputBase + " text-right"} placeholder="0" />
+                  </td>
+                  <td className="border border-[#ece4f6] p-2">
+                    <input ref={unitPriceInputRef} value={salesUnitPrice} onChange={(e) => setSalesUnitPrice(digitsOnly(e.target.value))} onKeyDown={(e) => {
+                      if (e.key === "Enter") { e.preventDefault(); handleAddSalesRow(); }
+                    }} className={inputBase + " text-right"} placeholder="0" />
+                  </td>
+                  <td className="border border-[#ece4f6] bg-[#f9f5ff] px-3 py-2 text-right font-semibold text-[#4b3f66]">{formatNumber(currentAmount)}</td>
+                  <td className="border border-[#ece4f6] px-3 py-2 text-center text-[#8d81a6]">입력</td>
+                </tr>
+
+                {rows.map((row) => (
+                  <tr key={row.id} className="bg-white/78 hover:bg-[#fcf9ff]">
+                    <td className="border border-[#ece4f6] px-3 py-2 text-center">
+                      {editingCell?.rowId === row.id && editingCell?.key === "date" ? (
+                        <input
+                          autoFocus
+                          defaultValue={row.date.replace("월 ", "/").replace("일", "")}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onBlur={(e) => updateEditableCell(row.id, "date", e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") updateEditableCell(row.id, "date", (e.target as HTMLInputElement).value);
+                            if (e.key === "Escape") setEditingCell(null);
+                          }}
+                          className={inputBase + " text-center"}
+                        />
+                      ) : (
+                        <button className="w-full text-center" onDoubleClick={() => setEditingCell({ rowId: row.id, key: "date" })}>{row.date}</button>
+                      )}
+                    </td>
+                    <td className="border border-[#ece4f6] px-3 py-2 text-center">{row.company}</td>
+                    <td className="border border-[#ece4f6] px-3 py-2 text-center">{row.code}</td>
+                    <td className={"border border-[#ece4f6] px-3 py-2 text-center " + (isSelectedCell(row.id, "name") ? "bg-[#eaf4ff]" : "")} onMouseDown={(e) => handleCellMouseDown(e, { rowId: row.id, key: "name" })} onMouseEnter={() => handleCellMouseEnter({ rowId: row.id, key: "name" })}>{row.name}</td>
+                    <td className="border border-[#ece4f6] px-3 py-2 text-center">{row.remark}</td>
+                    <td className={"border border-[#ece4f6] px-3 py-2 text-right " + (isSelectedCell(row.id, "qty") ? "bg-[#eaf4ff]" : "")} onMouseDown={(e) => handleCellMouseDown(e, { rowId: row.id, key: "qty" })} onMouseEnter={() => handleCellMouseEnter({ rowId: row.id, key: "qty" })}>
+                      {editingCell?.rowId === row.id && editingCell?.key === "qty" ? (
+                        <input
+                          autoFocus
+                          defaultValue={String(row.qty)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onBlur={(e) => updateEditableCell(row.id, "qty", e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") updateEditableCell(row.id, "qty", (e.target as HTMLInputElement).value);
+                            if (e.key === "Escape") setEditingCell(null);
+                          }}
+                          className={inputBase + " text-right"}
+                        />
+                      ) : (
+                        <button className="w-full text-right" onDoubleClick={() => setEditingCell({ rowId: row.id, key: "qty" })}>{formatNumber(row.qty)}</button>
+                      )}
+                    </td>
+                    <td className={"border border-[#ece4f6] px-3 py-2 text-right " + (isSelectedCell(row.id, "unitPrice") ? "bg-[#eaf4ff]" : "")} onMouseDown={(e) => handleCellMouseDown(e, { rowId: row.id, key: "unitPrice" })} onMouseEnter={() => handleCellMouseEnter({ rowId: row.id, key: "unitPrice" })}>
+                      {editingCell?.rowId === row.id && editingCell?.key === "unitPrice" ? (
+                        <input
+                          autoFocus
+                          defaultValue={String(row.unitPrice)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onBlur={(e) => updateEditableCell(row.id, "unitPrice", e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") updateEditableCell(row.id, "unitPrice", (e.target as HTMLInputElement).value);
+                            if (e.key === "Escape") setEditingCell(null);
+                          }}
+                          className={inputBase + " text-right"}
+                        />
+                      ) : (
+                        <button className="w-full text-right" onDoubleClick={() => setEditingCell({ rowId: row.id, key: "unitPrice" })}>{formatNumber(row.unitPrice)}</button>
+                      )}
+                    </td>
+                    <td className={"border border-[#ece4f6] px-3 py-2 text-right font-medium " + (isSelectedCell(row.id, "amount") ? "bg-[#eaf4ff]" : "")} onMouseDown={(e) => handleCellMouseDown(e, { rowId: row.id, key: "amount" })} onMouseEnter={() => handleCellMouseEnter({ rowId: row.id, key: "amount" })}>{formatNumber(row.qty * row.unitPrice)}</td>
+                    <td className="border border-[#ece4f6] px-3 py-2 text-center"><button className="text-red-500" onClick={() => deleteRow(row.id)}>삭제</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {selectedSummary && (
+            <div className="mt-3 px-6 text-sm text-[#5f5677]">선택 {selectedSummary.count}칸{selectedSummary.numericCount > 0 && " / 숫자 " + selectedSummary.numericCount + "개 / 합계 " + formatNumber(selectedSummary.numericSum)}</div>
+          )}
+          <div className="mt-4 px-6 pb-6 text-right text-sm font-semibold">총 매출: {formatNumber(monthlyTotal)}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+// PART 2
+  if (page === "menu") {
+    return (
+      <div className={shellBg}>
+        <div className="mx-auto flex min-h-screen max-w-6xl items-center justify-center px-4 py-10">
+          <div className="w-full overflow-hidden rounded-[32px] border border-white/70 bg-white/82 shadow-[0_20px_60px_rgba(131,103,181,0.15)] backdrop-blur">
+            <div className="border-b border-[#efe6fb] bg-[linear-gradient(90deg,rgba(255,247,232,0.92)_0%,rgba(247,241,255,0.94)_54%,rgba(238,246,255,0.94)_100%)] px-8 py-6">
+              <div className="text-[24px] font-semibold tracking-[-0.03em] text-[#4b3f66]">
+                가은표 스마트 매출·매입 장부
+              </div>
+              <div className="mt-1 text-[13px] text-[#897ea0]">
+                첫 화면에서는 가장 많이 쓰는 메뉴 4개만 바로 보이게 정리했어.
+              </div>
+            </div>
+
+            <div className="grid grid-cols-[1.05fr_0.95fr] gap-0">
+              <div className="border-r border-[#efe6fb] bg-[linear-gradient(180deg,rgba(255,248,235,0.84)_0%,rgba(248,240,255,0.68)_100%)] px-8 py-8">
+                <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/90 bg-white shadow-[0_8px_24px_rgba(131,103,181,0.10)]">
+                  <LockKeyhole className="h-5 w-5 text-[#9e7cf6]" />
+                </div>
+                <div className="text-[28px] font-semibold tracking-[-0.03em] text-[#4b3f66]">
+                  들어오자마자 바로 고르는 장부 메인 메뉴
+                </div>
+              </div>
+
+              <div className="px-8 py-8">
+                <div className="grid grid-cols-2 gap-4">
+                  {menuCards.map((card) => {
+                    const Icon = card.icon;
+                    return (
+                      <button
+                        key={card.key}
+                        onClick={() => card.key === "sales" && setPage("sales")}
+                        className="group rounded-[24px] border border-white/90 bg-white/88 p-5 text-left shadow-[0_10px_28px_rgba(131,103,181,0.10)] transition hover:-translate-y-0.5 hover:bg-white"
+                      >
+                        <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#f8f0ff_0%,#eef7ff_100%)] text-[#8b72d9]">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div className="text-[19px] font-semibold tracking-[-0.02em] text-[#4b3f66]">
+                          {card.title}
+                        </div>
+                        <div className="mt-2 text-[12px] leading-6 text-[#8d81a6]">
+                          {card.desc}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={shellBg} onMouseDown={() => setSelectedCells([])}>
+      <div className="mx-auto max-w-[1460px] px-4 py-6">
+        <div className={panel}>
+          <div className="flex items-center justify-between border-b border-[#efe6fb] bg-[linear-gradient(90deg,rgba(255,247,232,0.92)_0%,rgba(247,241,255,0.94)_54%,rgba(238,246,255,0.94)_100%)] px-6 py-5">
+            <button className={softButton} onClick={() => setPage("menu")}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> 돌아가기
+            </button>
+
+            <div className="text-[20px] font-semibold tracking-[-0.03em] text-[#4b3f66]">
+              매출 입력
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button className={softButton} onClick={sortRowsByDateAndCompany}>
+                날짜순으로 정렬
+              </button>
+              <div className="text-[12px] text-[#897ea0]">
+                기본은 등록 순서, 필요할 때만 날짜순 정렬
+              </div>
+            </div>
+          </div>
+
+          <div
+            ref={tableScrollRef}
+            className="max-h-[68vh] overflow-auto px-6 py-5"
+            onMouseDown={() => setSelectedCells([])}
+          >
+            <table className="w-full min-w-[1440px] border-collapse text-[13px] text-[#514867]">
+              <thead>
+                <tr className="bg-white text-[#756b8d]">
+                  {[
+                    "월일",
+                    "업체명",
+                    "코드",
+                    "품명",
+                    "수량",
+                    "단가",
+                    "매출금액",
+                    "비고",
+                    "관리",
+                  ].map((head) => (
+                    <th
+                      key={head}
+                      className="sticky top-0 z-10 border border-[#e8def4] bg-white px-3 py-3 text-center font-semibold"
+                    >
+                      {head}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr className="sticky top-[44px] z-10 bg-white shadow-sm">
+                  <td className="border border-[#ece4f6] p-2">
+                    <input
+                      className={inputBase}
+                      value={salesDateRaw}
+                      onChange={(e) => setSalesDateRaw(e.target.value)}
+                      onBlur={() => {
+                        const parsed = parseDateInput(salesDateRaw);
+                        setSalesDateRaw(parsed.raw);
+                        setSalesDateLabel(parsed.label);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const parsed = parseDateInput(salesDateRaw);
+                          setSalesDateRaw(parsed.raw);
+                          setSalesDateLabel(parsed.label);
+                          moveToNextInput("date");
+                        }
+                      }}
+                    />
+                  </td>
+
+                  <td className="border border-[#ece4f6] p-2">
+                    <select
+                      ref={companyInputRef}
+                      value={salesCompany}
+                      onChange={(e) => setSalesCompany(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          moveToNextInput("company");
+                        }
+                      }}
+                      className={selectBase}
+                    >
+                      {clients.map((client) => (
+                        <option key={client} value={client}>
+                          {client}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+
+                  <td className="border border-[#ece4f6] p-2">
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-[#9b90b1]" />
+                      <input
+                        ref={codeInputRef}
+                        value={salesCode}
+                        onChange={(e) => handleCodeChange(e.target.value)}
+                        onFocus={() => setCodeFocused(true)}
+                        onBlur={() => window.setTimeout(() => setCodeFocused(false), 120)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const exact = items.find(
+                              (item) =>
+                                item.code.toLowerCase() === salesCode.toLowerCase()
+                            );
+                            if (exact) selectItem(exact.code);
+                            else moveToNextInput("code");
+                          }
+
+                          if (e.key === "ArrowDown") {
+                            e.preventDefault();
+                            const first = matchedItems[0];
+                            if (first) selectItem(first.code);
+                          }
+                        }}
+                        className={inputBase + " pl-10"}
+                        placeholder="코드 입력"
+                      />
+
+                      {codeFocused && matchedItems.length > 0 && (
+                        <div className="absolute left-0 top-[44px] z-20 max-h-64 w-[460px] overflow-auto rounded-[18px] border border-white/90 bg-white/96 shadow-[0_18px_40px_rgba(122,92,168,0.18)] backdrop-blur">
+                          {matchedItems.map((item) => (
+                            <button
+                              key={item.code}
+                              onMouseDown={() => selectItem(item.code)}
+                              className="block w-full border-b border-[#f2ebfb] px-4 py-3 text-left transition hover:bg-[#fcf8ff]"
+                            >
+                              <div className="font-semibold text-[#4b3f66]">
+                                {item.code}
+                              </div>
+                              <div className="mt-1 text-[12px] text-[#7f7498]">
+                                {item.name}
+                              </div>
+                              <div className="mt-1 text-[11px] text-[#9b90b1]">
+                                단가 {formatNumber(item.price)}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </td>
+
+                  <td className="border border-[#ece4f6] p-2">
+                    <input
+                      value={salesName}
+                      readOnly
+                      className={inputBase + " bg-[#faf7ff]"}
+                      placeholder="코드 선택 시 자동 표시"
+                    />
+                  </td>
+
+                  <td className="border border-[#ece4f6] p-2">
+                    <input
+                      ref={qtyInputRef}
+                      value={salesQty}
+                      onChange={(e) => setSalesQty(digitsOnly(e.target.value))}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          moveToNextInput("qty");
+                        }
+                      }}
+                      className={inputBase + " text-right"}
+                      placeholder="0"
+                    />
+                  </td>
+
+                  <td className="border border-[#ece4f6] p-2">
+                    <input
+                      ref={unitPriceInputRef}
+                      value={salesUnitPrice}
+                      onChange={(e) =>
+                        setSalesUnitPrice(digitsOnly(e.target.value))
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddSalesRow();
+                        }
+                      }}
+                      className={inputBase + " text-right"}
+                      placeholder="0"
+                    />
+                  </td>
+
+                  <td className="border border-[#ece4f6] bg-[#f9f5ff] px-3 py-2 text-right font-semibold text-[#4b3f66]">
+                    {formatNumber(currentAmount)}
+                  </td>
+
+                  <td className="border border-[#ece4f6] p-2">
+                    <input
+                      value={salesRemark}
+                      onChange={(e) => setSalesRemark(e.target.value)}
+                      className={inputBase}
+                      placeholder="비고"
+                    />
+                  </td>
+
+                  <td className="border border-[#ece4f6] px-3 py-2 text-center text-[#8d81a6]">
+                    입력
+                  </td>
+                </tr>
+
+                {rows.map((row) => (
+                  <tr key={row.id} className="bg-white/78 hover:bg-[#fcf9ff]">
+                    <td className="border border-[#ece4f6] px-3 py-2 text-center">
+                      {editingCell?.rowId === row.id &&
+                      editingCell?.key === "date" ? (
+                        <input
+                          autoFocus
+                          defaultValue={row.date.replace("월 ", "/").replace("일", "")}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onBlur={(e) =>
+                            updateEditableCell(row.id, "date", e.target.value)
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              updateEditableCell(
+                                row.id,
+                                "date",
+                                (e.target as HTMLInputElement).value
+                              );
+                            }
+                            if (e.key === "Escape") setEditingCell(null);
+                          }}
+                          className={inputBase + " text-center"}
+                        />
+                      ) : (
+                        <button
+                          className="w-full text-center"
+                          onDoubleClick={() =>
+                            setEditingCell({ rowId: row.id, key: "date" })
+                          }
+                        >
+                          {row.date}
+                        </button>
+                      )}
+                    </td>
+
+                    <td className="border border-[#ece4f6] px-3 py-2 text-center">
+                      {row.company}
+                    </td>
+
+                    <td className="border border-[#ece4f6] px-3 py-2 text-center">
+                      {row.code}
+                    </td>
+
+                    <td
+                      className={
+                        "border border-[#ece4f6] px-3 py-2 text-center " +
+                        (isSelectedCell(row.id, "name") ? "bg-[#eaf4ff]" : "")
+                      }
+                      onMouseDown={(e) =>
+                        handleCellMouseDown(e, { rowId: row.id, key: "name" })
+                      }
+                      onMouseEnter={() =>
+                        handleCellMouseEnter({ rowId: row.id, key: "name" })
+                      }
+                    >
+                      {row.name}
+                    </td>
+
+                    <td
+                      className={
+                        "border border-[#ece4f6] px-3 py-2 text-right " +
+                        (isSelectedCell(row.id, "qty") ? "bg-[#eaf4ff]" : "")
+                      }
+                      onMouseDown={(e) =>
+                        handleCellMouseDown(e, { rowId: row.id, key: "qty" })
+                      }
+                      onMouseEnter={() =>
+                        handleCellMouseEnter({ rowId: row.id, key: "qty" })
+                      }
+                    >
+                      {editingCell?.rowId === row.id &&
+                      editingCell?.key === "qty" ? (
+                        <input
+                          autoFocus
+                          defaultValue={String(row.qty)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onBlur={(e) =>
+                            updateEditableCell(row.id, "qty", e.target.value)
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              updateEditableCell(
+                                row.id,
+                                "qty",
+                                (e.target as HTMLInputElement).value
+                              );
+                            }
+                            if (e.key === "Escape") setEditingCell(null);
+                          }}
+                          className={inputBase + " text-right"}
+                        />
+                      ) : (
+                        <button
+                          className="w-full text-right"
+                          onDoubleClick={() =>
+                            setEditingCell({ rowId: row.id, key: "qty" })
+                          }
+                        >
+                          {formatNumber(row.qty)}
+                        </button>
+                      )}
+                    </td>
+
+                    <td
+                      className={
+                        "border border-[#ece4f6] px-3 py-2 text-right " +
+                        (isSelectedCell(row.id, "unitPrice")
+                          ? "bg-[#eaf4ff]"
+                          : "")
+                      }
+                      onMouseDown={(e) =>
+                        handleCellMouseDown(e, {
+                          rowId: row.id,
+                          key: "unitPrice",
+                        })
+                      }
+                      onMouseEnter={() =>
+                        handleCellMouseEnter({
+                          rowId: row.id,
+                          key: "unitPrice",
+                        })
+                      }
+                    >
+                      {editingCell?.rowId === row.id &&
+                      editingCell?.key === "unitPrice" ? (
+                        <input
+                          autoFocus
+                          defaultValue={String(row.unitPrice)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onBlur={(e) =>
+                            updateEditableCell(
+                              row.id,
+                              "unitPrice",
+                              e.target.value
+                            )
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              updateEditableCell(
+                                row.id,
+                                "unitPrice",
+                                (e.target as HTMLInputElement).value
+                              );
+                            }
+                            if (e.key === "Escape") setEditingCell(null);
+                          }}
+                          className={inputBase + " text-right"}
+                        />
+                      ) : (
+                        <button
+                          className="w-full text-right"
+                          onDoubleClick={() =>
+                            setEditingCell({
+                              rowId: row.id,
+                              key: "unitPrice",
+                            })
+                          }
+                        >
+                          {formatNumber(row.unitPrice)}
+                        </button>
+                      )}
+                    </td>
+
+                    <td
+                      className={
+                        "border border-[#ece4f6] px-3 py-2 text-right font-medium " +
+                        (isSelectedCell(row.id, "amount") ? "bg-[#eaf4ff]" : "")
+                      }
+                      onMouseDown={(e) =>
+                        handleCellMouseDown(e, { rowId: row.id, key: "amount" })
+                      }
+                      onMouseEnter={() =>
+                        handleCellMouseEnter({ rowId: row.id, key: "amount" })
+                      }
+                    >
+                      {formatNumber(row.qty * row.unitPrice)}
+                    </td>
+
+                    <td className="border border-[#ece4f6] px-3 py-2 text-center">
+                      {row.remark}
+                    </td>
+
+                    <td className="border border-[#ece4f6] px-3 py-2 text-center">
+                      <button
+                        className="text-red-500"
+                        onClick={() => deleteRow(row.id)}
+                      >
+                        삭제
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {selectedSummary && (
+            <div className="mt-3 px-6 text-sm text-[#5f5677]">
+              선택 {selectedSummary.count}칸
+              {selectedSummary.numericCount > 0 &&
+                " / 숫자 " +
+                  selectedSummary.numericCount +
+                  "개 / 합계 " +
+                  formatNumber(selectedSummary.numericSum)}
+            </div>
+          )}
+
+          <div className="mt-4 px-6 pb-6 text-right text-sm font-semibold">
+            총 매출: {formatNumber(monthlyTotal)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
